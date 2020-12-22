@@ -1,0 +1,28 @@
+[package]
+name = "ws-lite"
+version = "0.6.0"
+authors = ["Christoffer Lantz <christoffer.lantz@androidbutiken.net>"]
+edition = "2018"
+description = "Naive websocket server implemented using async / await"
+repository = "https://github.com/Muqito/ws-lite"
+keywords = ["websocket-server", "websocket", "async", "non-blocking", "futures"]
+categories = ["asynchronous", "network-programming"]
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.13.0"
+const-sha1 = { git = "https://github.com/rylev/const-sha1", version = "0.2" }
+
+allocation-counter = { version = "0.5", optional = true }
+
+[features]
+count-allocations = ["allocation-counter"]
+
+[dev-dependencies]
+criterion = "0.3.3"
+
+[[bench]]
+name = "benchmarks"
+harness = false
