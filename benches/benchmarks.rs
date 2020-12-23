@@ -1,6 +1,6 @@
 #![feature(const_generics)]
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ws_lite::accept_connection::WsHeaders;
+use ws_lite::accept::ws_headers::WsHeaders;
 use ws_lite::message::{Message, WriteMessage};
 
 fn ws_headers(c: &mut Criterion) {
