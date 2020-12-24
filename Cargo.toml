@@ -3,10 +3,10 @@ name = "ws-lite"
 version = "0.6.0"
 authors = ["Christoffer Lantz <christoffer.lantz@androidbutiken.net>"]
 edition = "2018"
-description = "Naive websocket server implemented using async / await"
+description = "Websocket server helper functions"
 repository = "https://github.com/Muqito/ws-lite"
-keywords = ["websocket-server", "websocket", "async", "non-blocking", "futures"]
-categories = ["asynchronous", "network-programming"]
+keywords = ["websocket-server", "websocket"]
+categories = ["network-programming"]
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
