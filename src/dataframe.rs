@@ -1,5 +1,10 @@
 use std::borrow::Cow;
 
+pub fn mask_data<const N: usize>(data: &mut [u8], mask: [u8; N]) {
+    for index in 0..data.len() {
+        data[index] ^= mask[index % N];
+    }
+}
 #[derive(PartialEq)]
 pub enum Opcode {
     Continuation = 0,
@@ -220,9 +225,7 @@ impl DataFrame {
     fn calculate_masked_data(&mut self) {
         if let Some((start_payload, end_payload)) = self.get_start_and_end_payload() {
             let mask = self.get_masking_key();
-            for (index, i) in (start_payload..end_payload).enumerate() {
-                self.data[i] ^= mask[index % 4];
-            }
+            mask_data(&mut self.data[start_payload..end_payload], mask);
         }
     }
     pub fn get_message<'b>(&'b self) -> Option<ReadMessage<'b>> {
@@ -437,5 +440,60 @@ mod tests {
         let input = String::from_utf8_lossy(dataframe.get_payload().unwrap());
 
         assert_eq!(input, str);
+    }
+    #[test]
+    fn test_mask_data() {
+        let masking_key: [u8; 5] = [1, 0, 0, 1, 1];
+        let expected_result = vec![128, 254, 5, 1, 153];
+        let mut buffer: Vec<u8> = vec![129, 254, 5, 0, 152];
+        mask_data(&mut buffer, masking_key);
+
+        assert_eq!(buffer, expected_result);
+    }
+    #[test]
+    fn test_mask_partially_data() {
+        let masking_key: [u8; 5] = [1, 0, 0, 1, 1];
+        let expected_result = vec![129, 254, 7, 0, 152];
+        let mut buffer: Vec<u8> = vec![129, 254, 6, 0, 152];
+        mask_data(&mut buffer[2..], masking_key);
+
+        assert_eq!(buffer, expected_result);
+    }
+    #[test]
+    fn test_masking_data_all_zeros() {
+        let masking_key: [u8; 5] = [0, 0, 0, 0, 0];
+        let expected_result = vec![129, 254, 6, 0, 152];
+        let mut buffer: Vec<u8> = vec![129, 254, 6, 0, 152];
+        mask_data(&mut buffer, masking_key);
+
+        assert_eq!(buffer, expected_result);
+    }
+    #[test]
+    fn test_masking_data_all_ones() {
+        let masking_key: [u8; 5] = [1, 1, 1, 1, 1];
+        let expected_result = vec![128, 255, 7, 1, 153];
+        let mut buffer: Vec<u8> = vec![129, 254, 6, 0, 152];
+        mask_data(&mut buffer, masking_key);
+
+        assert_eq!(buffer, expected_result);
+    }
+    #[test]
+    fn test_mask_partially_data_no_change() {
+        let masking_key: [u8; 5] = [0, 0, 0, 1, 1];
+        let expected_result = vec![129, 254, 6, 0, 152];
+        let mut buffer: Vec<u8> = vec![129, 254, 6, 0, 152];
+        mask_data(&mut buffer[2..], masking_key);
+
+        assert_eq!(buffer, expected_result);
+    }
+    #[cfg(feature = "count-allocations")]
+    #[test]
+    fn mask_no_allocations() {
+        let masking_key: [u8; 5] = [0, 0, 0, 1, 1];
+        let mut buffer = vec![129, 254, 6, 0, 152];
+        let pt_alloc = allocation_counter::count(|| {
+            mask_data(&mut buffer[2..], masking_key);
+        });
+        assert_eq!(pt_alloc, 0);
     }
 }
